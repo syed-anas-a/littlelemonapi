@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "ef57fff6f7d22c916d94d40f6971bb53f929bd0e055c3bc7053d6815b0c1d1b3"
+            "sha256": "508b5807dcf88fd130cda3a081669ca6e5c146f7917ec4c40797160aafabc4c2"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -32,6 +32,32 @@
             "index": "pypi",
             "markers": "python_version >= '3.12'",
             "version": "==6.0.2"
+        },
+        "djangorestframework": {
+            "hashes": [
+                "sha256:166809528b1aced0a17dc66c24492af18049f2c9420dbd0be29422029cfc3ff7",
+                "sha256:33a59f47fb9c85ede792cbf88bde71893bcda0667bc573f784649521f1102cec"
+            ],
+            "index": "pypi",
+            "markers": "python_version >= '3.9'",
+            "version": "==3.16.1"
+        },
+        "djangorestframework-simplejwt": {
+            "hashes": [
+                "sha256:2c30f3707053d384e9f315d11c2daccfcb548d4faa453111ca19a542b732e469",
+                "sha256:e72c5572f51d7803021288e2057afcbd03f17fe11d484096f40a460abc76e87f"
+            ],
+            "index": "pypi",
+            "markers": "python_version >= '3.9'",
+            "version": "==5.5.1"
+        },
+        "pyjwt": {
+            "hashes": [
+                "sha256:35f95c1f0fbe5d5ba6e43f00271c275f7a1a4db1dab27bf708073b75318ea623",
+                "sha256:94a6bde30eb5c8e04fee991062b534071fd1439ef58d2adc9ccb823e7bcd0469"
+            ],
+            "markers": "python_version >= '3.9'",
+            "version": "==2.11.0"
         },
         "sqlparse": {
             "hashes": [
