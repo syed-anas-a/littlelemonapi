@@ -1,12 +1,11 @@
-from django.urls import path
-from rest_framwork import (
-    TokenObtainPairView,
-    TokenRefreshView
-)
+from django.urls import path, include
+from . import views
 
 urlpatterns = [
     #User registration and token generation endpoints 
-    path('api/users/', ),
-    path('api/users/users/me/'),
-    path('token/login/', TokenObtainPairView.as_view())
+    path('', include('djoser.urls')),
+    path('', include('djoser.urls.authtoken')),
+
+    #MenuItemview
+    path('menu-items/', views.MenuItemListCreate.as_view())
 ]
