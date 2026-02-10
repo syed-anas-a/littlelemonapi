@@ -9,5 +9,5 @@ urlpatterns = [
 
     #MenuItemview
     path('menu-items/', views.MenuItemListCreate.as_view()),
-    path('menu-items/<str:item>', views.MenuItemRUD.as_view())
+    path('menu-items/<int:pk>', views.MenuItemRUD.as_view())
 ]

@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework_simplejwt',
     'djoser',
+    'rest_framework.authtoken',
 ]
 
 MIDDLEWARE = [
@@ -124,9 +125,10 @@ STATIC_URL = 'static/'
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework.authentication.TokenAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
     )
 }
 
 DJOSER = {
-    "USER_ID_FIELD":"username"
+    'LOGIN_FIELD': 'username',
 }
