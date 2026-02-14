@@ -81,14 +81,40 @@ class MenuItemDetail(generics.RetrieveUpdateDestroyAPIView):
 # Cart View
 class CartList(APIView):
 
-    # permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated]
 
-    # def get_user(user)
+    def get(self, request):
+        user = request.user
+        cart = Cart.objects.filter(user=user)
+        serializer = CartSerializer(cart, many=True)
+        return Response(serializer.data) 
+    
+    def post(self, request):
+        menuitem = request.data.get('menuitem')
+        quantity = int(request.data.get('quantity'))
 
-    # def get(self, request):
+        cart_item, created = Cart.objects.get_or_create(
+            user=request.user,
+            menuitem_id=menuitem,
+            defaults={
+                'quantity': quantity,
+                'price': 0
+            }   
+        )   
 
-    #     return Cart.objects.all()
-    ...
+        if not created:
+            cart_item.quantity += quantity
+
+        cart_item.price = cart_item.quantity * cart_item.menuitem.price
+        cart_item.save()
+
+        serializer = CartSerializer(cart_item)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+    
+    def delete(self, request):
+       
+        Cart.objects.filter(user=request.user).delete()
+        return Response(status=status.HTTP_200_OK)
     
 
     
