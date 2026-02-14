@@ -8,10 +8,13 @@ urlpatterns = [
     path('', include('djoser.urls.authtoken')),
 
     # group management
-    path('groups/<str:group_name>/users/', views.GroupManagementView.as_view()),
-    path('groups/<str:group_name>/users/<int:userId>/', views.GroupManagementView.as_view()),
+    path('groups/<str:group_name>/users', views.UserGroupManagement.as_view()),
+    path('groups/<str:group_name>/users/<int:userId>', views.UserGroupManagement.as_view()),
 
     #MenuItemview
-    path('menu-items/', views.MenuItemListCreate.as_view()),
-    path('menu-items/<int:pk>', views.MenuItemRUD.as_view())
+    path('menu-items/', views.MenuItemList.as_view()),
+    path('menu-items/<str:menuItem>', views.MenuItemDetail.as_view()),
+
+    #CartView
+    path('cart/menu-items', views.CartList.as_view()),
 ]
