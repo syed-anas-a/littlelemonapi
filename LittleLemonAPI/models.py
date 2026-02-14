@@ -30,3 +30,25 @@ class Cart(models.Model):
 
     def __str__(self):
         return f"{self.user.username} => {self.menuitem.title}"
+    
+
+    
+class Order(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    delivery_crew = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='order_delivery')
+    status = models.BooleanField(default=False)
+    order_value = models.DecimalField(max_digits=6, decimal_places=2)
+    date = models.DateField(auto_now_add=True)
+
+
+    def __str__(self):
+        return f"OrderID: {self.id} to {self.user.username}"
+    
+
+class OrderItem(models.Model):
+    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='items')
+    menuitem = models.ForeignKey(MenuItem, on_delete=models.CASCADE)
+    quantity = models.PositiveIntegerField()
+
+    def price(self):
+        return self.quantity*self.menuitem.price
