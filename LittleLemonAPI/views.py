@@ -8,12 +8,15 @@ from .permissions import IsManager, IsDeliveryCrew, IsCustomer
 from django.contrib.auth.models import User, Group
 from rest_framework.response import Response
 from rest_framework.exceptions import NotFound
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.filters import SearchFilter, OrderingFilter
 
 
 # Create your views here.
 
 # Group views
 class UserGroupManagement(APIView):
+    
     permission_classes = [IsManager]
 
     def get_group(self, group_name):
@@ -42,12 +45,13 @@ class UserGroupManagement(APIView):
     
     def delete(self, request, group_name, userId):
         group = self.get_group(group_name)
-        user = User.objects.get(id=userId)
         try:
-            group.user_set.remove(user)
-            return Response(status=status.HTTP_200_OK)
-        except:
-            return Response(status=status.HTTP_404_NOT_FOUND)
+            user = User.objects.get(id=userId)
+        except User.DoesNotExist:
+            raise NotFound("User not found.")
+
+        group.user_set.remove(user)
+        return Response({"message: User removed!!"},status=status.HTTP_200_OK)
 
 # Menu-item views
 class MenuItemList(generics.ListCreateAPIView):
@@ -58,9 +62,17 @@ class MenuItemList(generics.ListCreateAPIView):
         return super().get(request, *args, **kwargs)
     
     def get_permissions(self):
-        if self.request.method == 'POST':
+        if self.request.method == 'GET':
+            return [AllowAny()]
+        elif self.request.method == 'POST':
             return [IsManager()]
         return [IsAuthenticated()]
+    
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+
+    search_fields = ['title', 'category']
+    filterset_fields = ['category', 'featured']
+    ordering_fields = ['price', 'title']
     
 
 class MenuItemDetail(generics.RetrieveUpdateDestroyAPIView):
@@ -118,6 +130,7 @@ class OrderList(generics.ListCreateAPIView):
     def get_queryset(self):
         user = self.request.user
 
+
         if user.groups.filter(name='Manager').exists():
             return Order.objects.all()
 
@@ -132,6 +145,13 @@ class OrderList(generics.ListCreateAPIView):
             return Response({"message":"Only customers can place orders."},status=status.HTTP_401_UNAUTHORIZED)
 
         serializer.save()
+
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+
+    search_fields = ['id', 'user__username']
+    filterset_fields = ['status', 'date']
+    ordering_fields = ['date', 'order_value']
+
 
 
 class OrderDetail(generics.RetrieveUpdateDestroyAPIView):
