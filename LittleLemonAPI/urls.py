@@ -15,6 +15,10 @@ urlpatterns = [
     path('menu-items/', views.MenuItemList.as_view()),
     path('menu-items/<str:menuItem>', views.MenuItemDetail.as_view()),
 
-    #CartView
+    #Cart management endpoints
     path('cart/menu-items', views.CartList.as_view()),
+
+    #Order management endpoints
+    path('orders/', views.OrderList.as_view()),
+    path('orders/<int:pk>/', views.OrderDetail.as_view()),
 ]

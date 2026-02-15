@@ -1,10 +1,10 @@
 from django.shortcuts import render
 from rest_framework import status, generics
 from rest_framework.views import APIView
-from .models import MenuItem, Cart
-from .serializers import MenuItemSerializer, CartSerializer
+from .models import MenuItem, Cart, Order
+from .serializers import MenuItemSerializer, CartSerializer, OrderSerializer, OrderItemSerializer, OrderStatusSerializer, OrderManagerUpdateSerializer
 from rest_framework.permissions import IsAdminUser, IsAuthenticatedOrReadOnly, AllowAny, IsAuthenticated
-from .permissions import IsManager, IsDeliveryCrew
+from .permissions import IsManager, IsDeliveryCrew, IsCustomer
 from django.contrib.auth.models import User, Group
 from rest_framework.response import Response
 from rest_framework.exceptions import NotFound
@@ -48,10 +48,6 @@ class UserGroupManagement(APIView):
             return Response(status=status.HTTP_200_OK)
         except:
             return Response(status=status.HTTP_404_NOT_FOUND)
-            
-
-    
-
 
 # Menu-item views
 class MenuItemList(generics.ListCreateAPIView):
@@ -79,42 +75,99 @@ class MenuItemDetail(generics.RetrieveUpdateDestroyAPIView):
         return [IsAuthenticatedOrReadOnly()]
     
 # Cart View
-class CartList(APIView):
-
+class CartList(generics.ListCreateAPIView):
+    serializer_class = CartSerializer
     permission_classes = [IsAuthenticated]
 
-    def get(self, request):
+    def get_queryset(self):
+        user = self.request.user
+
+        # Restrict cart access to customers only
+        if user.groups.filter(name='Manager').exists() or \
+           user.groups.filter(name='Delivery Crew').exists():
+            return Response({"message":"Only customers can place orders."},status=status.HTTP_401_UNAUTHORIZED)
+
+        return Cart.objects.filter(user=user)
+
+    def perform_create(self, serializer):
+        user = self.request.user
+
+        if user.groups.filter(name='Manager').exists() or \
+           user.groups.filter(name='Delivery Crew').exists():
+            return Response({"message":"Only customers can place orders."},status=status.HTTP_401_UNAUTHORIZED)
+
+        serializer.save()
+
+    def delete(self, request, *args, **kwargs):
         user = request.user
-        cart = Cart.objects.filter(user=user)
-        serializer = CartSerializer(cart, many=True)
-        return Response(serializer.data) 
-    
-    def post(self, request):
-        menuitem = request.data.get('menuitem')
-        quantity = int(request.data.get('quantity'))
 
-        cart_item, created = Cart.objects.get_or_create(
-            user=request.user,
-            menuitem_id=menuitem,
-            defaults={
-                'quantity': quantity,
-                'price': 0
-            }   
-        )   
+        if user.groups.filter(name='Manager').exists() or \
+           user.groups.filter(name='Delivery Crew').exists():
+            return Response({"message":"Only customers can place orders."},status=status.HTTP_401_UNAUTHORIZED)
 
-        if not created:
-            cart_item.quantity += quantity
-
-        cart_item.price = cart_item.quantity * cart_item.menuitem.price
-        cart_item.save()
-
-        serializer = CartSerializer(cart_item)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
-    
-    def delete(self, request):
-       
-        Cart.objects.filter(user=request.user).delete()
+        Cart.objects.filter(user=user).delete()
         return Response(status=status.HTTP_200_OK)
+    
+
+# Order views
+class OrderList(generics.ListCreateAPIView):
+
+    serializer_class = OrderSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+
+        if user.groups.filter(name='Manager').exists():
+            return Order.objects.all()
+
+        if user.groups.filter(name='Delivery Crew').exists():
+            return Order.objects.filter(delivery_crew=user)
+
+        return Order.objects.filter(user=user)
+
+    def perform_create(self, serializer):
+        if self.request.user.groups.filter(name='Manager').exists() or \
+           self.request.user.groups.filter(name='Delivery Crew').exists():
+            return Response({"message":"Only customers can place orders."},status=status.HTTP_401_UNAUTHORIZED)
+
+        serializer.save()
+
+
+class OrderDetail(generics.RetrieveUpdateDestroyAPIView):
+
+    permission_classes = [IsAuthenticated]
+    queryset = Order.objects.all()
+
+    def get_serializer_class(self):
+        user = self.request.user
+
+        if user.groups.filter(name='Delivery Crew').exists():
+            return OrderStatusSerializer
+
+        if user.groups.filter(name='Manager').exists():
+            return OrderManagerUpdateSerializer
+
+        return OrderSerializer
+
+    def get_queryset(self):
+        user = self.request.user
+
+        if user.groups.filter(name='Manager').exists():
+            return Order.objects.all()
+
+        if user.groups.filter(name='Delivery Crew').exists():
+            return Order.objects.filter(delivery_crew=user)
+
+        return Order.objects.filter(user=user)
+
+    def destroy(self, request, *args, **kwargs):
+        if not request.user.groups.filter(name='Manager').exists():
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+        return super().destroy(request, *args, **kwargs)
+
+
+    
     
 
     
